@@ -1,0 +1,275 @@
+/**
+ * CSS Custom Properties for Nautobot Renderer
+ * Design tokens for consistent theming across the application
+ */
+
+:root {
+  /* ==========================================================================
+     BRAND COLORS - Based on Nautobot's official color palette
+     ========================================================================== */
+
+  --nautobot-primary: #007cba;
+  --nautobot-primary-light: #5dade2;
+  --nautobot-primary-dark: #004d7a;
+  --nautobot-primary-contrast: #ffffff;
+
+  --nautobot-secondary: #6c757d;
+  --nautobot-secondary-light: #868e96;
+  --nautobot-secondary-dark: #495057;
+
+  --nautobot-success: #5cb85c;
+  --nautobot-success-light: #7cc57c;
+  --nautobot-success-dark: #449d44;
+
+  --nautobot-info: #5bc0de;
+  --nautobot-info-light: #7fd4e8;
+  --nautobot-info-dark: #31b0d5;
+
+  --nautobot-warning: #f0ad4e;
+  --nautobot-warning-light: #f3ba6b;
+  --nautobot-warning-dark: #ec971f;
+
+  --nautobot-danger: #d9534f;
+  --nautobot-danger-light: #e08077;
+  --nautobot-danger-dark: #c9302c;
+
+  /* ==========================================================================
+     APP-SPECIFIC COLORS - Django app color coding
+     ========================================================================== */
+
+  --app-dcim-primary: #3b82f6;        /* Blue - Device/Infrastructure */
+  --app-dcim-light: #93c5fd;
+  --app-dcim-dark: #1e40af;
+
+  --app-ipam-primary: #10b981;        /* Green - IP Address Management */
+  --app-ipam-light: #86efac;
+  --app-ipam-dark: #059669;
+
+  --app-circuits-primary: #f59e0b;    /* Orange - Circuit Management */
+  --app-circuits-light: #fcd34d;
+  --app-circuits-dark: #d97706;
+
+  --app-tenancy-primary: #8b5cf6;     /* Purple - Multi-tenancy */
+  --app-tenancy-light: #c084fc;
+  --app-tenancy-dark: #7c3aed;
+
+  --app-extras-primary: #64748b;      /* Gray - Extensions/Extras */
+  --app-extras-light: #94a3b8;
+  --app-extras-dark: #475569;
+
+  --app-users-primary: #ec4899;       /* Pink - User Management */
+  --app-users-light: #f472b6;
+  --app-users-dark: #db2777;
+
+  /* ==========================================================================
+     SEMANTIC COLORS - Context-based color system
+     ========================================================================== */
+
+  --semantic-background-primary: #ffffff;
+  --semantic-background-secondary: #f8fafc;
+  --semantic-background-tertiary: #f1f5f9;
+  --semantic-background-quaternary: #e2e8f0;
+
+  --semantic-surface-primary: #ffffff;
+  --semantic-surface-secondary: rgba(255, 255, 255, 0.95);
+  --semantic-surface-glass: rgba(255, 255, 255, 0.25);
+
+  --semantic-border-primary: #e2e8f0;
+  --semantic-border-secondary: #cbd5e1;
+  --semantic-border-accent: var(--nautobot-primary);
+
+  --semantic-text-primary: #0f172a;
+  --semantic-text-secondary: #475569;
+  --semantic-text-tertiary: #94a3b8;
+  --semantic-text-inverse: #ffffff;
+
+  /* ==========================================================================
+     SPACING SYSTEM - Consistent spacing scale
+     ========================================================================== */
+
+  --space-xs: 0.25rem;      /* 4px */
+  --space-sm: 0.5rem;       /* 8px */
+  --space-base: 1rem;       /* 16px */
+  --space-md: 1.5rem;       /* 24px */
+  --space-lg: 2rem;         /* 32px */
+  --space-xl: 3rem;         /* 48px */
+  --space-2xl: 4rem;        /* 64px */
+  --space-3xl: 6rem;        /* 96px */
+
+  --content-padding: var(--space-md);
+  --section-gap: var(--space-lg);
+  --component-gap: var(--space-base);
+  --field-gap: var(--space-sm);
+
+  /* ==========================================================================
+     TYPOGRAPHY SYSTEM
+     ========================================================================== */
+
+  --font-family-primary: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-family-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --font-size-2xs: 0.625rem;   /* 10px */
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ==========================================================================
+     BORDER RADIUS SYSTEM
+     ========================================================================== */
+
+  --radius-sm: 0.25rem;     /* 4px */
+  --radius-base: 0.5rem;    /* 8px */
+  --radius-md: 0.75rem;     /* 12px */
+  --radius-lg: 1rem;        /* 16px */
+  --radius-xl: 1.5rem;      /* 24px */
+  --radius-full: 9999px;    /* Full radius */
+
+  /* ==========================================================================
+     SHADOW SYSTEM - Elevation and depth
+     ========================================================================== */
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-base: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --shadow-glow: 0 0 20px rgba(0, 124, 186, 0.5);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* ==========================================================================
+     ANIMATION SYSTEM - Timing and easing
+     ========================================================================== */
+
+  --transition-fast: 0.15s ease-out;
+  --transition-base: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
+
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* ==========================================================================
+     GLASS MORPHISM SYSTEM
+     ========================================================================== */
+
+  --glass-bg-light: rgba(255, 255, 255, 0.25);
+  --glass-bg-dark: rgba(0, 0, 0, 0.25);
+  --glass-border-light: rgba(255, 255, 255, 0.18);
+  --glass-border-dark: rgba(255, 255, 255, 0.1);
+  --glass-backdrop-blur: blur(10px);
+
+  /* ==========================================================================
+     Z-INDEX SYSTEM - Layer management
+     ========================================================================== */
+
+  --z-base: 1;
+  --z-tooltip: 1000;
+  --z-dropdown: 1010;
+  --z-modal-backdrop: 1020;
+  --z-modal: 1030;
+  --z-notification: 1040;
+  --z-flow-controls: 1000;
+  --z-flow-minimap: 999;
+  --z-flow-handle: 10;
+
+  /* ==========================================================================
+     BREAKPOINTS - Responsive design tokens
+     ========================================================================== */
+
+  --breakpoint-xs: 475px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ==========================================================================
+     COMPONENT-SPECIFIC VARIABLES
+     ========================================================================== */
+
+  /* Node styling */
+  --node-min-width: 220px;
+  --node-min-height: 120px;
+  --node-border-width: 2px;
+
+  /* Panel styling */
+  --panel-backdrop: rgba(255, 255, 255, 0.9);
+  --panel-border: rgba(226, 232, 240, 0.5);
+
+  /* Button styling */
+  --button-height-sm: 2rem;
+  --button-height-base: 2.5rem;
+  --button-height-lg: 3rem;
+}
+
+/* ==========================================================================
+   DARK MODE VARIABLES
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --semantic-background-primary: #0f172a;
+    --semantic-background-secondary: #1e293b;
+    --semantic-background-tertiary: #334155;
+    --semantic-background-quaternary: #475569;
+
+    --semantic-surface-primary: #1e293b;
+    --semantic-surface-secondary: rgba(30, 41, 59, 0.95);
+    --semantic-surface-glass: rgba(0, 0, 0, 0.25);
+
+    --semantic-border-primary: #334155;
+    --semantic-border-secondary: #475569;
+
+    --semantic-text-primary: #f8fafc;
+    --semantic-text-secondary: #cbd5e1;
+    --semantic-text-tertiary: #64748b;
+    --semantic-text-inverse: #0f172a;
+
+    --panel-backdrop: rgba(30, 41, 59, 0.9);
+    --panel-border: rgba(71, 85, 105, 0.5);
+  }
+}
+
+/* Alternative explicit dark mode class */
+.dark {
+  --semantic-background-primary: #0f172a;
+  --semantic-background-secondary: #1e293b;
+  --semantic-background-tertiary: #334155;
+  --semantic-background-quaternary: #475569;
+
+  --semantic-surface-primary: #1e293b;
+  --semantic-surface-secondary: rgba(30, 41, 59, 0.95);
+  --semantic-surface-glass: rgba(0, 0, 0, 0.25);
+
+  --semantic-border-primary: #334155;
+  --semantic-border-secondary: #475569;
+
+  --semantic-text-primary: #f8fafc;
+  --semantic-text-secondary: #cbd5e1;
+  --semantic-text-tertiary: #64748b;
+  --semantic-text-inverse: #0f172a;
+
+  --panel-backdrop: rgba(30, 41, 59, 0.9);
+  --panel-border: rgba(71, 85, 105, 0.5);
+}

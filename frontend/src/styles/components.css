@@ -1,0 +1,446 @@
+/**
+ * Component-specific styles for Nautobot Renderer
+ * Reusable component classes following the design system
+ */
+
+/* ==========================================================================
+   BUTTON COMPONENTS
+   ========================================================================== */
+
+.btn-nautobot {
+  @apply inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-nautobot-sm {
+  @apply px-3 py-1.5 text-sm;
+  min-height: var(--button-height-sm);
+}
+
+.btn-nautobot-base {
+  @apply px-4 py-2 text-sm;
+  min-height: var(--button-height-base);
+}
+
+.btn-nautobot-lg {
+  @apply px-6 py-3 text-base;
+  min-height: var(--button-height-lg);
+}
+
+.btn-nautobot-primary {
+  @apply bg-primary-500 border border-primary-500 text-white;
+  @apply hover:bg-primary-600 hover:border-primary-600 hover:-translate-y-0.5;
+  @apply focus:ring-primary-500 active:bg-primary-700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-nautobot-primary:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-nautobot-secondary {
+  @apply bg-white border border-secondary-300 text-secondary-700;
+  @apply hover:bg-secondary-50 hover:border-secondary-400 hover:-translate-y-0.5;
+  @apply focus:ring-secondary-500 active:bg-secondary-100;
+}
+
+.btn-nautobot-ghost {
+  @apply bg-transparent border border-transparent text-secondary-600;
+  @apply hover:bg-secondary-100 hover:text-secondary-900;
+  @apply focus:ring-secondary-500;
+}
+
+.btn-nautobot-gradient {
+  @apply text-white border-0;
+  background: linear-gradient(135deg, var(--nautobot-primary), var(--nautobot-primary-dark));
+  @apply hover:-translate-y-0.5;
+}
+
+.btn-nautobot-gradient:hover {
+  background: linear-gradient(135deg, var(--nautobot-primary-light), var(--nautobot-primary));
+  box-shadow: var(--shadow-glow);
+}
+
+/* ==========================================================================
+   CARD COMPONENTS
+   ========================================================================== */
+
+.card-nautobot {
+  @apply bg-white rounded-xl border border-secondary-200 overflow-hidden;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.card-nautobot-hover:hover {
+  @apply border-secondary-300 -translate-y-1;
+  box-shadow: var(--shadow-lg);
+}
+
+.card-nautobot-glass {
+  background: var(--glass-bg-light);
+  backdrop-filter: var(--glass-backdrop-blur);
+  -webkit-backdrop-filter: var(--glass-backdrop-blur);
+  border: 1px solid var(--glass-border-light);
+}
+
+.card-nautobot-gradient {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+  backdrop-filter: var(--glass-backdrop-blur);
+  -webkit-backdrop-filter: var(--glass-backdrop-blur);
+}
+
+.card-nautobot-header {
+  @apply px-6 py-4 bg-gradient-to-r from-secondary-50 to-transparent border-b border-secondary-200/50;
+}
+
+.card-nautobot-body {
+  @apply px-6 py-4;
+}
+
+.card-nautobot-footer {
+  @apply px-6 py-4 bg-secondary-50 border-t border-secondary-200/50;
+}
+
+/* ==========================================================================
+   BADGE COMPONENTS
+   ========================================================================== */
+
+.badge-nautobot {
+  @apply inline-flex items-center px-2.5 py-0.5 text-xs font-semibold rounded-full;
+}
+
+.badge-nautobot-sm {
+  @apply px-2 py-0.5 text-2xs;
+}
+
+.badge-nautobot-lg {
+  @apply px-3 py-1 text-sm;
+}
+
+.badge-nautobot-primary {
+  @apply bg-primary-100 text-primary-800;
+}
+
+.badge-nautobot-success {
+  @apply bg-success-100 text-success-800;
+}
+
+.badge-nautobot-warning {
+  @apply bg-warning-100 text-warning-800;
+}
+
+.badge-nautobot-error {
+  @apply bg-error-100 text-error-800;
+}
+
+.badge-nautobot-info {
+  @apply bg-info-100 text-info-800;
+}
+
+.badge-nautobot-secondary {
+  @apply bg-secondary-100 text-secondary-800;
+}
+
+/* App-specific badges */
+.badge-app-dcim {
+  @apply bg-nautobot-dcim-100 text-nautobot-dcim-900;
+}
+
+.badge-app-ipam {
+  @apply bg-nautobot-ipam-100 text-nautobot-ipam-900;
+}
+
+.badge-app-circuits {
+  @apply bg-nautobot-circuits-100 text-nautobot-circuits-900;
+}
+
+.badge-app-tenancy {
+  @apply bg-nautobot-tenancy-100 text-nautobot-tenancy-900;
+}
+
+.badge-app-extras {
+  @apply bg-nautobot-extras-100 text-nautobot-extras-900;
+}
+
+.badge-app-users {
+  @apply bg-nautobot-users-100 text-nautobot-users-900;
+}
+
+/* ==========================================================================
+   PANEL COMPONENTS
+   ========================================================================== */
+
+.panel-nautobot {
+  @apply rounded-xl border shadow-soft;
+  background: var(--panel-backdrop);
+  backdrop-filter: var(--glass-backdrop-blur);
+  -webkit-backdrop-filter: var(--glass-backdrop-blur);
+  border-color: var(--panel-border);
+}
+
+.panel-nautobot-glass {
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-light);
+}
+
+.panel-nautobot-solid {
+  @apply bg-white border-secondary-200;
+}
+
+/* ==========================================================================
+   STATUS INDICATOR COMPONENTS
+   ========================================================================== */
+
+.status-nautobot {
+  @apply inline-block w-2 h-2 rounded-full;
+}
+
+.status-nautobot-lg {
+  @apply w-3 h-3;
+}
+
+.status-nautobot-online {
+  @apply bg-success-500;
+  animation: status-pulse-success 2s ease-in-out infinite;
+}
+
+.status-nautobot-offline {
+  @apply bg-error-500;
+}
+
+.status-nautobot-loading {
+  @apply bg-warning-500;
+  animation: status-pulse-warning 1.5s ease-in-out infinite;
+}
+
+.status-nautobot-idle {
+  @apply bg-secondary-400;
+}
+
+@keyframes status-pulse-success {
+  0%, 100% {
+    background-color: #5cb85c;
+    opacity: 1;
+  }
+  50% {
+    background-color: #4ade80;
+    opacity: 0.75;
+  }
+}
+
+@keyframes status-pulse-warning {
+  0%, 100% {
+    background-color: #f0ad4e;
+    opacity: 1;
+  }
+  50% {
+    background-color: #fbbf24;
+    opacity: 0.75;
+  }
+}
+
+/* ==========================================================================
+   LOADING COMPONENTS
+   ========================================================================== */
+
+.spinner-nautobot {
+  @apply inline-block w-4 h-4 border-2 border-secondary-200 border-t-primary-500 rounded-full;
+  animation: spinner-rotate 1s linear infinite;
+}
+
+.spinner-nautobot-sm {
+  @apply w-3 h-3;
+}
+
+.spinner-nautobot-lg {
+  @apply w-6 h-6;
+}
+
+@keyframes spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-dots-nautobot::after {
+  content: '';
+  @apply inline-block w-4 text-left;
+  animation: loading-dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes loading-dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
+
+.skeleton-nautobot {
+  @apply bg-secondary-200 rounded animate-pulse;
+}
+
+.skeleton-nautobot-line {
+  @apply h-4 mb-2;
+}
+
+.skeleton-nautobot-circle {
+  @apply w-10 h-10 rounded-full;
+}
+
+/* ==========================================================================
+   INPUT COMPONENTS
+   ========================================================================== */
+
+.input-nautobot {
+  @apply block w-full px-3 py-2 text-sm bg-white border border-secondary-300 rounded-lg;
+  @apply transition-colors duration-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply placeholder:text-secondary-400 disabled:bg-secondary-50 disabled:text-secondary-500;
+}
+
+.input-nautobot-error {
+  @apply border-error-300 focus:border-error-500 focus:ring-error-500;
+}
+
+.input-nautobot-success {
+  @apply border-success-300 focus:border-success-500 focus:ring-success-500;
+}
+
+/* ==========================================================================
+   TOOLTIP COMPONENTS
+   ========================================================================== */
+
+.tooltip-nautobot {
+  @apply absolute z-50 px-3 py-2 text-sm text-white bg-secondary-900 rounded-lg shadow-lg;
+  @apply opacity-0 transition-opacity duration-200 pointer-events-none;
+  @apply before:absolute before:w-2 before:h-2 before:bg-secondary-900 before:rotate-45;
+}
+
+.tooltip-nautobot.show {
+  @apply opacity-100;
+}
+
+.tooltip-nautobot-top {
+  @apply mb-2;
+  @apply before:top-full before:left-1/2 before:-translate-x-1/2 before:-mt-1;
+}
+
+.tooltip-nautobot-bottom {
+  @apply mt-2;
+  @apply before:bottom-full before:left-1/2 before:-translate-x-1/2 before:-mb-1;
+}
+
+.tooltip-nautobot-left {
+  @apply mr-2;
+  @apply before:left-full before:top-1/2 before:-translate-y-1/2 before:-ml-1;
+}
+
+.tooltip-nautobot-right {
+  @apply ml-2;
+  @apply before:right-full before:top-1/2 before:-translate-y-1/2 before:-mr-1;
+}
+
+/* ==========================================================================
+   ALERT COMPONENTS
+   ========================================================================== */
+
+.alert-nautobot {
+  @apply p-4 rounded-lg border;
+}
+
+.alert-nautobot-success {
+  @apply bg-success-50 border-success-200 text-success-800;
+}
+
+.alert-nautobot-error {
+  @apply bg-error-50 border-error-200 text-error-800;
+}
+
+.alert-nautobot-warning {
+  @apply bg-warning-50 border-warning-200 text-warning-800;
+}
+
+.alert-nautobot-info {
+  @apply bg-info-50 border-info-200 text-info-800;
+}
+
+/* ==========================================================================
+   PROGRESS COMPONENTS
+   ========================================================================== */
+
+.progress-nautobot {
+  @apply w-full bg-secondary-200 rounded-full overflow-hidden;
+}
+
+.progress-nautobot-bar {
+  @apply h-full bg-primary-500 transition-all duration-300 ease-out;
+}
+
+.progress-nautobot-sm {
+  @apply h-1;
+}
+
+.progress-nautobot-base {
+  @apply h-2;
+}
+
+.progress-nautobot-lg {
+  @apply h-4;
+}
+
+/* ==========================================================================
+   NAVIGATION COMPONENTS
+   ========================================================================== */
+
+.nav-nautobot {
+  @apply flex space-x-1;
+}
+
+.nav-nautobot-item {
+  @apply px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200;
+  @apply text-secondary-600 hover:text-secondary-900 hover:bg-secondary-100;
+}
+
+.nav-nautobot-item.active {
+  @apply text-primary-700 bg-primary-100;
+}
+
+/* ==========================================================================
+   CODE COMPONENTS
+   ========================================================================== */
+
+.code-nautobot {
+  @apply font-mono text-sm bg-secondary-100 px-2 py-1 rounded;
+}
+
+.code-nautobot-block {
+  @apply font-mono text-sm bg-secondary-900 text-secondary-100 p-4 rounded-lg overflow-x-auto;
+}
+
+/* ==========================================================================
+   DIVIDER COMPONENTS
+   ========================================================================== */
+
+.divider-nautobot {
+  @apply border-t border-secondary-200;
+}
+
+.divider-nautobot-vertical {
+  @apply border-l border-secondary-200 h-full;
+}
+
+.divider-nautobot-text {
+  @apply relative flex items-center justify-center text-secondary-500 text-sm;
+}
+
+.divider-nautobot-text::before,
+.divider-nautobot-text::after {
+  @apply flex-1 border-t border-secondary-200;
+  content: '';
+}
+
+.divider-nautobot-text span {
+  @apply px-3 bg-white;
+}

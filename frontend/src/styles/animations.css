@@ -1,0 +1,456 @@
+/**
+ * Animation utilities for Nautobot Renderer
+ * Custom animations and micro-interactions
+ */
+
+/* ==========================================================================
+   ENTRANCE ANIMATIONS
+   ========================================================================== */
+
+@keyframes nautobot-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nautobot-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nautobot-fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nautobot-fade-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes nautobot-fade-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes nautobot-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nautobot-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nautobot-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   LOADING ANIMATIONS
+   ========================================================================== */
+
+@keyframes nautobot-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nautobot-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes nautobot-bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes nautobot-ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes nautobot-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ==========================================================================
+   INTERACTIVE ANIMATIONS
+   ========================================================================== */
+
+@keyframes nautobot-wiggle {
+  0%, 7% {
+    transform: rotateZ(0);
+  }
+  15% {
+    transform: rotateZ(-15deg);
+  }
+  20% {
+    transform: rotateZ(10deg);
+  }
+  25% {
+    transform: rotateZ(-10deg);
+  }
+  30% {
+    transform: rotateZ(6deg);
+  }
+  35% {
+    transform: rotateZ(-4deg);
+  }
+  40%, 100% {
+    transform: rotateZ(0);
+  }
+}
+
+@keyframes nautobot-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes nautobot-glow {
+  0% {
+    box-shadow: 0 0 20px rgba(0, 124, 186, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 124, 186, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(0, 124, 186, 0.5);
+  }
+}
+
+@keyframes nautobot-heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   TEXT ANIMATIONS
+   ========================================================================== */
+
+@keyframes nautobot-typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes nautobot-text-shine {
+  0%, 100% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes nautobot-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* ==========================================================================
+   UTILITY ANIMATION CLASSES
+   ========================================================================== */
+
+.animate-nautobot-fade-in {
+  animation: nautobot-fade-in 0.5s ease-out;
+}
+
+.animate-nautobot-fade-in-up {
+  animation: nautobot-fade-in-up 0.6s ease-out;
+}
+
+.animate-nautobot-fade-in-down {
+  animation: nautobot-fade-in-down 0.6s ease-out;
+}
+
+.animate-nautobot-fade-in-left {
+  animation: nautobot-fade-in-left 0.6s ease-out;
+}
+
+.animate-nautobot-fade-in-right {
+  animation: nautobot-fade-in-right 0.6s ease-out;
+}
+
+.animate-nautobot-scale-in {
+  animation: nautobot-scale-in 0.3s ease-out;
+}
+
+.animate-nautobot-slide-down {
+  animation: nautobot-slide-down 0.4s ease-out;
+}
+
+.animate-nautobot-zoom-in {
+  animation: nautobot-zoom-in 0.4s ease-out;
+}
+
+.animate-nautobot-spin {
+  animation: nautobot-spin 1s linear infinite;
+}
+
+.animate-nautobot-pulse {
+  animation: nautobot-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-nautobot-bounce {
+  animation: nautobot-bounce 1s infinite;
+}
+
+.animate-nautobot-ping {
+  animation: nautobot-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-nautobot-float {
+  animation: nautobot-float 3s ease-in-out infinite;
+}
+
+.animate-nautobot-glow {
+  animation: nautobot-glow 2s ease-in-out infinite alternate;
+}
+
+.animate-nautobot-heartbeat {
+  animation: nautobot-heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-nautobot-wiggle:hover {
+  animation: nautobot-wiggle 0.8s ease-in-out;
+}
+
+/* ==========================================================================
+   LOADING STATE ANIMATIONS
+   ========================================================================== */
+
+.loading-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: nautobot-shimmer 2s linear infinite;
+}
+
+/* ==========================================================================
+   STAGGERED ANIMATIONS
+   ========================================================================== */
+
+.stagger-fade-in-up > * {
+  animation: nautobot-fade-in-up 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.stagger-fade-in-up > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-fade-in-up > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-fade-in-up > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-fade-in-up > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-fade-in-up > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-fade-in-up > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* ==========================================================================
+   HOVER AND INTERACTION ANIMATIONS
+   ========================================================================== */
+
+.hover-lift {
+  transition: all var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-scale {
+  transition: transform var(--transition-base);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: all var(--transition-base);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.hover-rotate {
+  transition: transform var(--transition-base);
+}
+
+.hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+/* ==========================================================================
+   FOCUS ANIMATIONS
+   ========================================================================== */
+
+.focus-ring-animate {
+  transition: all var(--transition-base);
+}
+
+.focus-ring-animate:focus-visible {
+  outline: 2px solid var(--nautobot-primary);
+  outline-offset: 2px;
+  animation: nautobot-pulse 1s ease-out;
+}
+
+/* ==========================================================================
+   SCROLL ANIMATIONS
+   ========================================================================== */
+
+.scroll-fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+.scroll-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   REDUCED MOTION SUPPORT
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-nautobot-fade-in,
+  .animate-nautobot-fade-in-up,
+  .animate-nautobot-fade-in-down,
+  .animate-nautobot-fade-in-left,
+  .animate-nautobot-fade-in-right,
+  .animate-nautobot-scale-in,
+  .animate-nautobot-slide-down,
+  .animate-nautobot-zoom-in,
+  .animate-nautobot-bounce,
+  .animate-nautobot-float,
+  .animate-nautobot-glow,
+  .animate-nautobot-heartbeat,
+  .animate-nautobot-wiggle,
+  .hover-lift,
+  .hover-scale,
+  .hover-glow,
+  .hover-rotate,
+  .scroll-fade-in {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .animate-nautobot-spin,
+  .animate-nautobot-pulse,
+  .animate-nautobot-ping,
+  .loading-shimmer::before {
+    animation-duration: 0.01s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
