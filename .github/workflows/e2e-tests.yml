@@ -1,0 +1,447 @@
+name: 🎭 End-to-End Tests
+
+on:
+  workflow_run:
+    workflows: ["🚀 CI Pipeline"]
+    types: [completed]
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      run_full_suite:
+        description: 'Run full E2E test suite'
+        type: boolean
+        default: false
+
+env:
+  FORCE_COLOR: '1'
+
+# Only run one E2E workflow at a time to prevent resource conflicts
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # Check CI Success
+  # ==========================================
+  check-ci-success:
+    name: 🔍 Check CI Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+
+    steps:
+      - name: 📊 Check CI Workflow Result
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Manual trigger - running E2E tests"
+          elif [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "CI succeeded - running E2E tests"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "CI failed or was cancelled - skipping E2E tests"
+          fi
+
+  # ==========================================
+  # Browser Testing Matrix
+  # ==========================================
+  browser-tests:
+    name: 🌐 Browser Tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.should_run == 'true'
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+        include:
+          - browser: chromium
+            viewport: '1920x1080'
+          - browser: firefox
+            viewport: '1920x1080'
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🎭 Install Playwright Browsers
+        working-directory: frontend
+        run: npx playwright install ${{ matrix.browser }} --with-deps
+
+      - name: 🐳 Build Test Environment
+        run: |
+          # Create test data directory
+          mkdir -p test-data/mock-nautobot/mappings
+          mkdir -p test-data/mock-nautobot/__files
+
+          # Create mock Nautobot responses
+          cat > test-data/mock-nautobot/mappings/health.json << 'EOF'
+          {
+            "request": {
+              "method": "GET",
+              "url": "/api/health/"
+            },
+            "response": {
+              "status": 200,
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": "{\"status\": \"healthy\", \"version\": \"1.0.0\"}"
+            }
+          }
+          EOF
+
+          cat > test-data/mock-nautobot/mappings/schema.json << 'EOF'
+          {
+            "request": {
+              "method": "POST",
+              "url": "/api/graphql/"
+            },
+            "response": {
+              "status": 200,
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "bodyFileName": "schema-response.json"
+            }
+          }
+          EOF
+
+          cat > test-data/mock-nautobot/__files/schema-response.json << 'EOF'
+          {
+            "data": {
+              "__schema": {
+                "types": [
+                  {
+                    "name": "Device",
+                    "kind": "OBJECT",
+                    "description": "Network device",
+                    "fields": [
+                      {"name": "id", "type": {"name": "ID"}},
+                      {"name": "name", "type": {"name": "String"}},
+                      {"name": "site", "type": {"name": "Site"}}
+                    ]
+                  },
+                  {
+                    "name": "Site",
+                    "kind": "OBJECT",
+                    "description": "Physical location",
+                    "fields": [
+                      {"name": "id", "type": {"name": "ID"}},
+                      {"name": "name", "type": {"name": "String"}}
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+          EOF
+
+      - name: 🚀 Start Test Environment
+        run: |
+          # Start services in background
+          docker-compose -f docker-compose.test.yml up -d --build
+
+          # Wait for services to be healthy
+          echo "⏳ Waiting for services to start..."
+          timeout 300 bash -c '
+            while ! curl -sf http://localhost:8080/api/v1/health > /dev/null 2>&1; do
+              echo "Waiting for backend..."
+              sleep 5
+            done
+          '
+
+          timeout 300 bash -c '
+            while ! curl -sf http://localhost:3000 > /dev/null 2>&1; do
+              echo "Waiting for frontend..."
+              sleep 5
+            done
+          '
+
+          echo "✅ All services are ready!"
+
+      - name: 🧪 Run E2E Tests
+        working-directory: frontend
+        run: |
+          npx playwright test \
+            --project=${{ matrix.browser }} \
+            --reporter=html \
+            --output-dir=test-results-${{ matrix.browser }} \
+            --trace=retain-on-failure \
+            --video=retain-on-failure \
+            --screenshot=only-on-failure
+        env:
+          BASE_URL: http://localhost:3000
+          API_URL: http://localhost:8080
+          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+
+      - name: 📊 Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-results-${{ matrix.browser }}-${{ github.run_id }}
+          path: |
+            frontend/test-results-${{ matrix.browser }}/
+            frontend/playwright-report/
+          retention-days: 30
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down -v
+          docker system prune -f
+
+  # ==========================================
+  # Mobile Testing
+  # ==========================================
+  mobile-tests:
+    name: 📱 Mobile Tests
+    runs-on: ubuntu-latest
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.should_run == 'true' && github.event.inputs.run_full_suite == 'true'
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        device: ['iPhone 13', 'Pixel 5']
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🎭 Install Playwright
+        working-directory: frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: 🚀 Start Test Environment
+        run: |
+          docker-compose -f docker-compose.test.yml up -d --build
+          timeout 300 bash -c '
+            while ! curl -sf http://localhost:3000 > /dev/null 2>&1; do
+              sleep 5
+            done
+          '
+
+      - name: 📱 Run Mobile Tests
+        working-directory: frontend
+        run: |
+          npx playwright test \
+            --project=chromium \
+            --device="${{ matrix.device }}" \
+            --reporter=html \
+            --output-dir=mobile-results-${{ matrix.device }} \
+            --trace=retain-on-failure
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: 📊 Upload Mobile Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-results-${{ matrix.device }}-${{ github.run_id }}
+          path: frontend/mobile-results-${{ matrix.device }}/
+          retention-days: 30
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down -v
+
+  # ==========================================
+  # API Integration Tests
+  # ==========================================
+  api-integration:
+    name: 🔗 API Integration Tests
+    runs-on: ubuntu-latest
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.should_run == 'true'
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: 🔧 Install Dependencies
+        working-directory: backend
+        run: uv sync --all-extras
+
+      - name: 🚀 Start Test Environment
+        run: |
+          docker-compose -f docker-compose.test.yml up -d mock-nautobot redis
+          timeout 180 bash -c '
+            while ! curl -sf http://localhost:8000/__admin/health > /dev/null 2>&1; do
+              sleep 3
+            done
+          '
+
+      - name: 🧪 Run Integration Tests
+        working-directory: backend
+        run: |
+          uv run pytest tests/ \
+            -k "integration" \
+            --tb=short \
+            -v \
+            --junitxml=integration-results.xml
+        env:
+          NAUTOBOT_URL: http://localhost:8000
+          NAUTOBOT_API_TOKEN: test-token-12345
+          REDIS_URL: redis://localhost:6379/0
+
+      - name: 📊 Upload Integration Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-integration-results-${{ github.run_id }}
+          path: backend/integration-results.xml
+          retention-days: 30
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down -v
+
+  # ==========================================
+  # Performance Tests
+  # ==========================================
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.should_run == 'true'
+    timeout-minutes: 25
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🎭 Install Playwright
+        working-directory: frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: 🚀 Start Test Environment
+        run: |
+          docker-compose -f docker-compose.test.yml up -d --build
+          timeout 300 bash -c '
+            while ! curl -sf http://localhost:3000 > /dev/null 2>&1; do
+              sleep 5
+            done
+          '
+
+      - name: ⚡ Run Performance Tests
+        working-directory: frontend
+        run: |
+          npx playwright test \
+            --grep="@performance" \
+            --project=chromium \
+            --reporter=html \
+            --output-dir=performance-results
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: 📊 Lighthouse Audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './frontend/.lighthouserc.json'
+          temporaryPublicStorage: true
+          uploadArtifacts: true
+
+      - name: 📊 Upload Performance Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-results-${{ github.run_id }}
+          path: |
+            frontend/performance-results/
+            .lighthouseci/
+          retention-days: 30
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down -v
+
+  # ==========================================
+  # E2E Summary
+  # ==========================================
+  e2e-summary:
+    name: 📋 E2E Summary
+    runs-on: ubuntu-latest
+    needs: [browser-tests, api-integration, performance-tests]
+    if: always() && needs.check-ci-success.outputs.should_run == 'true'
+    timeout-minutes: 5
+
+    steps:
+      - name: 📊 Generate Summary
+        run: |
+          echo "## 🎭 End-to-End Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Browser Tests | ${{ needs.browser-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Integration | ${{ needs.api-integration.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance Tests | ${{ needs.performance-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source workflow:** ${{ github.event.workflow_run.name || 'Manual' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.browser-tests.result }}" == "success" && "${{ needs.api-integration.result }}" == "success" ]]; then
+            echo "🎉 **All critical E2E tests passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some E2E tests failed - please review the results**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: ✅ Mark Success
+        if: needs.browser-tests.result == 'success' && needs.api-integration.result == 'success'
+        run: echo "E2E tests completed successfully! 🎉"
+
+      - name: ❌ Mark Failure
+        if: needs.browser-tests.result == 'failure' || needs.api-integration.result == 'failure'
+        run: |
+          echo "E2E tests failed! ❌"
+          exit 1

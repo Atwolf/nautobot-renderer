@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Frontend Service
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+      args:
+        - NODE_VERSION=20
+    container_name: nautobot-renderer-frontend-test
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=test
+      - VITE_API_BASE_URL=http://backend:8080
+      - VITE_API_TOKEN=test-token-12345
+      - VITE_REQUEST_TIMEOUT=30000
+      - VITE_ENABLE_REQUEST_LOGGING=true
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - frontend-node-modules:/app/node_modules
+    networks:
+      - test-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # ==========================================
+  # Backend Service
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: nautobot-renderer-backend-test
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=test
+      - DEBUG=true
+      - NAUTOBOT_URL=http://mock-nautobot:8000
+      - NAUTOBOT_API_TOKEN=test-token-12345
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=sqlite:///./test.db
+      - LOG_LEVEL=INFO
+      - CORS_ALLOWED_ORIGINS=["http://frontend:3000", "http://localhost:3000"]
+    volumes:
+      - ./backend/app:/app/app:ro
+      - ./backend/tests:/app/tests:ro
+      - backend-cache:/app/.cache
+    networks:
+      - test-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      mock-nautobot:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # ==========================================
+  # Mock Nautobot Service
+  # ==========================================
+  mock-nautobot:
+    image: wiremock/wiremock:latest
+    container_name: nautobot-mock-server
+    ports:
+      - "8000:8080"
+    environment:
+      - WIREMOCK_OPTIONS=--global-response-templating --verbose
+    volumes:
+      - ./test-data/mock-nautobot:/home/wiremock:ro
+    command: [
+      "--port", "8080",
+      "--global-response-templating",
+      "--verbose",
+      "--root-dir", "/home/wiremock"
+    ]
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/__admin/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ==========================================
+  # Redis Cache Service
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: nautobot-redis-test
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ==========================================
+  # Test Runner Service
+  # ==========================================
+  test-runner:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+      target: test
+    container_name: nautobot-test-runner
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - VITE_API_BASE_URL=http://backend:8080
+      - VITE_API_TOKEN=test-token-12345
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/tests:/app/tests:ro
+      - ./test-reports:/app/test-reports
+    networks:
+      - test-network
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    command: ["npm", "run", "test:ci"]
+    profiles:
+      - testing
+
+  # ==========================================
+  # E2E Test Runner
+  # ==========================================
+  e2e-runner:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.playwright
+    container_name: nautobot-e2e-runner
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - BASE_URL=http://frontend:3000
+      - API_URL=http://backend:8080
+    volumes:
+      - ./frontend/tests/e2e:/app/tests/e2e:ro
+      - ./test-reports/e2e:/app/test-results
+    networks:
+      - test-network
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    command: ["npx", "playwright", "test", "--reporter=html"]
+    profiles:
+      - e2e
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  test-network:
+    driver: bridge
+    name: nautobot-test-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  frontend-node-modules:
+    name: nautobot-frontend-node-modules-test
+  backend-cache:
+    name: nautobot-backend-cache-test
+  redis-data:
+    name: nautobot-redis-data-test
+  test-reports:
+    name: nautobot-test-reports

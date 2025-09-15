@@ -50,6 +50,7 @@ export function SchemaVisualization() {
   const [layoutAlgorithm, setLayoutAlgorithm] = useState<'dagre' | 'hierarchical' | 'circular' | 'force' | 'elk'>('dagre');
   const [isAutoLayoutEnabled, setIsAutoLayoutEnabled] = useState(true);
   const [visibleApps, setVisibleApps] = useState(new Set(['dcim', 'circuits', 'ipam']));
+  const [availableApps, setAvailableApps] = useState<string[]>([]);
 
   // Demo data for testing - this will be replaced with real API data later
   const loadDemoData = useCallback(() => {
@@ -959,6 +960,10 @@ export function SchemaVisualization() {
 
             setNodes(layoutResult.nodes);
             setEdges(enhancedEdges);
+            
+            // Extract available apps from nodes for persistent controls
+            const apps = Array.from(new Set(layoutResult.nodes.map(n => n.data?.app).filter(Boolean)));
+            setAvailableApps(apps);
 
             // No longer need edge router updates with simplified approach
 
@@ -970,6 +975,10 @@ export function SchemaVisualization() {
         } else {
           setNodes(demoNodes);
           setEdges(demoEdges);
+          
+          // Extract available apps from nodes for persistent controls
+          const apps = Array.from(new Set(demoNodes.map(n => n.data?.app).filter(Boolean)));
+          setAvailableApps(apps);
         }
 
         setIsLoading(false);
@@ -1089,6 +1098,10 @@ export function SchemaVisualization() {
 
         setNodes(layoutResult.nodes);
         setEdges(enhancedEdges);
+        
+        // Extract available apps from nodes for persistent controls
+        const apps = Array.from(new Set(layoutResult.nodes.map(n => n.data?.app).filter(Boolean)));
+        setAvailableApps(apps);
 
         // No longer need edge router updates with simplified approach
 
@@ -1146,15 +1159,7 @@ export function SchemaVisualization() {
     defaultZoom,
   ]);
 
-  // Debug current state
-  useEffect(() => {
-    console.log('SchemaVisualization state update:', {
-      nodesCount: nodes.length,
-      edgesCount: edges.length,
-      isLoading,
-      reactFlowInstance: !!reactFlowInstance
-    });
-  }, [nodes.length, edges.length, isLoading, reactFlowInstance]);
+  // Debug state logging removed to prevent console spam
 
   // Error handling for React Flow
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -1375,7 +1380,7 @@ export function SchemaVisualization() {
             <div className="border-t border-secondary-200/30 pt-3">
               <div className="text-xs text-secondary-600 font-medium mb-2">Django Apps</div>
               <div className="flex flex-wrap gap-1">
-                {Array.from(new Set(nodes.map(n => n.data?.app).filter(Boolean))).map(app => (
+                {availableApps.map(app => (
                   <button
                     key={app}
                     onClick={() => toggleAppVisibility(app)}

@@ -1,0 +1,57 @@
+[
+  {
+    "id": "85b4ada9-eb9f-47b0-9add-7e4b8c29dbd6",
+    "source_model": "CircuitTerminationType",
+    "target_model": "CableType",
+    "relationship_type": "foreign_key",
+    "field_name": "cable",
+    "related_name": "circuitterminationtypes",
+    "through_model": null,
+    "is_nullable": true,
+    "description": null
+  },
+  {
+    "id": "b87e604e-9b35-4032-a5d4-1005c552028c",
+    "source_model": "CircuitTerminationType",
+    "target_model": "ContentTypeType",
+    "relationship_type": "foreign_key",
+    "field_name": "_cable_peer_type",
+    "related_name": "circuitterminationtypes",
+    "through_model": null,
+    "is_nullable": true,
+    "description": null
+  },
+  {
+    "id": "b10d354b-d908-482f-a218-4e738b890959",
+    "source_model": "CircuitTerminationType",
+    "target_model": "CablePathType",
+    "relationship_type": "foreign_key",
+    "field_name": "_path",
+    "related_name": "circuitterminationtypes",
+    "through_model": null,
+    "is_nullable": true,
+    "description": null
+  },
+  {
+    "id": "4fb9bd50-531c-405b-9c1d-f6322ca19fd2",
+    "source_model": "CircuitTerminationType",
+    "target_model": "LocationType",
+    "relationship_type": "foreign_key",
+    "field_name": "location",
+    "related_name": "circuitterminationtypes",
+    "through_model": null,
+    "is_nullable": true,
+    "description": null
+  },
+  {
+    "id": "4b64cab4-d3b2-4d15-a778-9031abae29d4",
+    "source_model": "TagType",
+    "target_model": "CircuitTerminationType",
+    "relationship_type": "many_to_many",
+    "field_name": "circuittermination",
+    "related_name": "tagtypes",
+    "through_model": null,
+    "is_nullable": true,
+    "description": "<graphene.types.argument.Argument object at 0x7ffff3a379d0>"
+  }
+]

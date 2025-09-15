@@ -1,0 +1,42 @@
+[
+  {
+    "id": "dfeca27b-6873-495c-a873-a880600d51ba",
+    "name": "CircuitTerminationType"
+  },
+  {
+    "id": "9302962b-ded9-470e-95b8-425659bf8411",
+    "name": "TagType"
+  },
+  {
+    "id": "ba7d7e59-a3a1-49ab-9443-c8fc942b3b07",
+    "name": "ContentTypeType"
+  },
+  {
+    "id": "2b6b8182-ac08-4b71-8b70-4ea710dcf11c",
+    "name": "DynamicGroupType"
+  },
+  {
+    "id": "12cc28c6-dc7e-4910-b013-04a047e44d6c",
+    "name": "ContactAssociationType"
+  },
+  {
+    "id": "206179dc-0045-4d81-998c-32dc0a4670d6",
+    "name": "InterfaceType"
+  },
+  {
+    "id": "27630891-2a2c-42d7-9030-92053bc0f03c",
+    "name": "DeviceType"
+  },
+  {
+    "id": "6998c5ed-b64a-4f01-869f-931e1698398e",
+    "name": "LocationType"
+  },
+  {
+    "id": "57705295-0fda-4271-af75-c8170ec83fbd",
+    "name": "PlatformType"
+  },
+  {
+    "id": "9a9fe92a-cef0-4f2b-8a3f-748024573df6",
+    "name": "VirtualMachineType"
+  }
+]

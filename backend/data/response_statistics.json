@@ -1,0 +1,12 @@
+{
+  "total_nodes": 26,
+  "total_relationships": 110,
+  "has_schema_graph": true,
+  "schema_graph_keys": [
+    "nodes",
+    "relationships",
+    "apps",
+    "discovery_timestamp",
+    "nautobot_version"
+  ]
+}

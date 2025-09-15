@@ -140,7 +140,7 @@ class SchemaTransformerService:
             table_name=self._generate_table_name(model_name, app_label),
             fields=fields,
             is_abstract=self._is_abstract_model(model_info),
-            description=model_info.get("description", "").strip() or None,
+            description=(model_info.get("description") or "").strip() or None,
             meta_options=self._extract_meta_options(model_info),
         )
 
@@ -161,7 +161,7 @@ class SchemaTransformerService:
             field_type=self._normalize_field_type(field_type),
             is_nullable=not field_data.get("is_required", False),
             is_list=field_data.get("is_list", False),
-            description=field_data.get("description", "").strip() or None,
+            description=(field_data.get("description") or "").strip() or None,
             default_value=field_data.get("default_value"),
             max_length=self._extract_max_length(field_data),
             choices=self._extract_choices(field_data),
@@ -171,17 +171,17 @@ class SchemaTransformerService:
         self, rel_data: Dict[str, Any]
     ) -> Optional[Relationship]:
         """Transform a relationship from GraphQL format to Relationship."""
-        source = rel_data.get("source", "").strip()
-        target = rel_data.get("target", "").strip()
-        field_name = rel_data.get("field", "").strip()
-        rel_type_str = rel_data.get("type", "").strip()
+        source = (rel_data.get("source") or "").strip()
+        target = (rel_data.get("target") or "").strip()
+        field_name = (rel_data.get("field") or "").strip()
+        rel_type_str = (rel_data.get("type") or "").strip()
 
         if not all([source, target, field_name, rel_type_str]):
             return None
 
         # Map relationship type
         try:
-            relationship_type = RelationshipType(rel_type_str.lower())
+            relationship_type = RelationshipType((rel_type_str or "").lower())
         except ValueError:
             # Default to custom relationship for unknown types
             relationship_type = RelationshipType.CUSTOM_RELATIONSHIP
@@ -194,7 +194,7 @@ class SchemaTransformerService:
             related_name=self._generate_related_name(source, field_name),
             through_model=rel_data.get("through_model"),
             is_nullable=not rel_data.get("is_required", False),
-            description=rel_data.get("description", "").strip() or None,
+            description=(rel_data.get("description") or "").strip() or None,
         )
 
     async def filter_schema(
@@ -311,7 +311,7 @@ class SchemaTransformerService:
             "admin",
         }
 
-        model_lower = model_name.lower()
+        model_lower = (model_name or "").lower()
 
         # Check if model name suggests an app
         for app in nautobot_apps:
@@ -319,9 +319,11 @@ class SchemaTransformerService:
                 return app
 
         # Look for app hints in description
-        for app in nautobot_apps:
-            if app in description.lower():
-                return app
+        if description:  # Add null check to prevent None.lower() error
+            description_lower = description.lower()
+            for app in nautobot_apps:
+                if app in description_lower:
+                    return app
 
         # Default fallback based on model name patterns
         if any(
@@ -362,8 +364,8 @@ class SchemaTransformerService:
     def _is_abstract_model(self, model_info: Dict[str, Any]) -> bool:
         """Check if a model is abstract based on available information."""
         # Look for hints in description or field patterns
-        description = model_info.get("description", "").lower()
-        if "abstract" in description:
+        description = model_info.get("description", "")
+        if description and "abstract" in (description or "").lower():
             return True
 
         # Models with very few fields might be abstract
@@ -423,7 +425,8 @@ class SchemaTransformerService:
     def _generate_table_name(self, model_name: str, app_label: str) -> str:
         """Generate database table name following Django conventions."""
         # Convert CamelCase to snake_case
-        table_name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", model_name)
+        safe_model_name = model_name or "unknown"
+        table_name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", safe_model_name)
         table_name = re.sub("([a-z0-9])([A-Z])", r"\1_\2", table_name).lower()
         return f"{app_label}_{table_name}"
 
@@ -432,7 +435,7 @@ class SchemaTransformerService:
     ) -> Optional[str]:
         """Generate related name for reverse relationships."""
         # Follow Django conventions for related names
-        source_lower = source_model.lower()
+        source_lower = (source_model or "").lower()
         if field_name.endswith("s"):
             return f"{source_lower}_set"
         else:

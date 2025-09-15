@@ -33,7 +33,7 @@ const LOG_COLORS = {
 // Browser console message formatter
 function formatConsoleMessage(msg, source = 'Browser') {
   const timestamp = new Date().toLocaleTimeString();
-  const level = msg.type || 'log';
+  const level = String(msg.type || 'log');
   const color = LOG_COLORS[level] || 'white';
 
   const prefix = colors.gray(`[${timestamp}]`) +
@@ -50,13 +50,16 @@ function formatConsoleMessage(msg, source = 'Browser') {
         return String(arg);
       }).join(' ');
     } else if (msg.text) {
-      text = msg.text;
+      text = String(msg.text);
     } else {
       text = String(msg);
     }
   } catch (e) {
     text = '[Complex Object - Cannot Stringify]';
   }
+
+  // Ensure text is always a string
+  text = String(text || '');
 
   // Handle React error boundaries and warnings
   if (text.includes('Warning:') || text.includes('React')) {

@@ -1,15 +1,13 @@
 /**
  * Simplified edge component using React Flow's built-in path utilities
- * Uses different path types based on relationship types for visual distinction
+ * Uses consistent smooth step paths for all relationships with visual styling
+ * differences (colors, dash patterns) to distinguish relationship types
  */
 
 import React, { useMemo } from 'react';
 import {
   type EdgeProps,
-  getBezierPath,
-  getSmoothStepPath,
-  getStraightPath,
-  getSimpleBezierPath
+  getSmoothStepPath
 } from 'reactflow';
 import type { NautobotEdgeData } from '../../types/schema';
 
@@ -35,114 +33,24 @@ const SimplifiedEdge: React.FC<SimplifiedEdgeProps> = ({
   animated = false
 }) => {
   // Calculate edge path using React Flow's built-in utilities
+  // Use consistent smooth step path for ALL relationship types to ensure
+  // dashed and solid lines follow exactly the same path shape
   const [edgePath, labelX, labelY] = useMemo(() => {
-    // Choose path type based on relationship type
-    switch (data?.type) {
-      case 'foreign_key':
-        // Use smooth step for foreign keys (clean, structured look)
-        return getSmoothStepPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-          borderRadius: 15,
-          offset: 20
-        });
-
-      case 'many_to_many':
-        // Use bezier for many-to-many (curved, organic look)
-        return getBezierPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-        });
-
-      case 'one_to_one':
-        // Use straight path for one-to-one (direct, simple)
-        return getStraightPath({
-          sourceX,
-          sourceY,
-          targetX,
-          targetY,
-        });
-
-      case 'reverse_foreign_key':
-        // Use simple bezier for reverse foreign keys (subtle curve)
-        return getSimpleBezierPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-        });
-
-      case 'cable_connection':
-        // Use straight path for direct physical connections
-        return getStraightPath({
-          sourceX,
-          sourceY,
-          targetX,
-          targetY,
-        });
-
-      case 'power_connection':
-        // Use bezier for power connections
-        return getBezierPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-        });
-
-      case 'console_connection':
-        // Use smooth step for console connections
-        return getSmoothStepPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-          borderRadius: 8,
-          offset: 15
-        });
-
-      case 'custom_relationship':
-        // Use bezier for custom relationships with organic curves
-        return getBezierPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-        });
-
-      default:
-        // Default to smooth step
-        return getSmoothStepPath({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-          borderRadius: 10,
-          offset: 15
-        });
-    }
+    // Use smooth step path for all relationships for consistency
+    // Only visual styling (colors, dash patterns) will differentiate relationship types
+    return getSmoothStepPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+      borderRadius: 12, // Consistent border radius for professional look
+      offset: 20       // Consistent offset for proper spacing
+    });
   }, [
     sourceX, sourceY, targetX, targetY,
-    sourcePosition, targetPosition,
-    data?.type
+    sourcePosition, targetPosition
   ]);
 
   // Get relationship-specific styling
