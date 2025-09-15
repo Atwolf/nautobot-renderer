@@ -59,10 +59,12 @@ export const NodeTooltip: React.FC<NodeTooltipProps> = React.memo(({ node, class
   const appColors = getAppColors(node.app);
   const modelConfig = getModelTypeConfig(node.name);
 
-  // Calculate statistics
-  const totalRelationships = node.relationships.outgoing.length + node.relationships.incoming.length;
-  const requiredFields = node.fields.filter(f => f.required).length;
-  const relationshipFields = node.fields.filter(f => f.relatedModel).length;
+  // Calculate statistics with safe access
+  const outgoingCount = node.relationships?.outgoing?.length || 0;
+  const incomingCount = node.relationships?.incoming?.length || 0;
+  const totalRelationships = outgoingCount + incomingCount;
+  const requiredFields = node.fields?.filter(f => f.required)?.length || 0;
+  const relationshipFields = node.fields?.filter(f => f.relatedModel)?.length || 0;
 
   return (
     <div
@@ -107,7 +109,7 @@ export const NodeTooltip: React.FC<NodeTooltipProps> = React.memo(({ node, class
       <div className="grid grid-cols-2 gap-3 mb-3 text-xs">
         <div className="bg-gray-50 p-2 rounded">
           <div className="font-semibold text-gray-700">Fields</div>
-          <div className="text-lg font-bold text-blue-600">{node.fields.length}</div>
+          <div className="text-lg font-bold text-blue-600">{node.fields?.length || 0}</div>
           {requiredFields > 0 && (
             <div className="text-gray-500">{requiredFields} required</div>
           )}
@@ -124,21 +126,21 @@ export const NodeTooltip: React.FC<NodeTooltipProps> = React.memo(({ node, class
       {/* Relationship breakdown */}
       <div className="border-t pt-3 space-y-2">
         <RelationshipSummary
-          relationships={node.relationships.outgoing}
+          relationships={node.relationships?.outgoing || []}
           title="Outgoing Relations"
         />
         <RelationshipSummary
-          relationships={node.relationships.incoming}
+          relationships={node.relationships?.incoming || []}
           title="Incoming Relations"
         />
       </div>
 
       {/* Quick field type summary */}
-      {node.fields.length > 0 && (
+      {(node.fields?.length || 0) > 0 && (
         <div className="border-t pt-3 mt-3">
           <h4 className="font-semibold text-xs text-gray-700 mb-1">Field Types</h4>
           <div className="flex flex-wrap gap-1">
-            {Array.from(new Set(node.fields.map(f => f.type))).map(type => (
+            {Array.from(new Set((node.fields || []).map(f => f.type))).map(type => (
               <span
                 key={type}
                 className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"

@@ -9,7 +9,7 @@ import { validateConfig, logger, appConstants } from './utils/config';
 import 'reactflow/dist/style.css';
 
 function AppContent() {
-  const [showDemo, setShowDemo] = useState(true); // Start with demo for API testing
+  const [showDemo, setShowDemo] = useState(false); // Start with visualization page
   const [showDebugConsole, setShowDebugConsole] = useState(false);
   const queryClient = useQueryClient();
 
@@ -135,6 +135,7 @@ function AppContent() {
           <div className="absolute -bottom-4 -left-4 w-96 h-96 bg-secondary-100/30 rounded-full blur-3xl"></div>
         </div>
       </main>
+
     </div>
   );
 }

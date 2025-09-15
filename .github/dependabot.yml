@@ -1,0 +1,284 @@
+version: 2
+
+updates:
+  # ==========================================
+  # Frontend Dependencies (npm)
+  # ==========================================
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@nautobot/frontend-team"
+    assignees:
+      - "@nautobot/frontend-maintainers"
+    commit-message:
+      prefix: "npm"
+      prefix-development: "npm-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "npm"
+    milestone: 2
+    rebase-strategy: "auto"
+    target-branch: "develop"
+    versioning-strategy: "increase"
+
+    # Group updates for better PR management
+    groups:
+      # React ecosystem updates
+      react:
+        patterns:
+          - "react*"
+          - "@types/react*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Testing dependencies
+      testing:
+        patterns:
+          - "*test*"
+          - "*jest*"
+          - "*vitest*"
+          - "playwright*"
+          - "@testing-library/*"
+          - "msw"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Build tools
+      build-tools:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "typescript*"
+          - "eslint*"
+          - "@typescript-eslint/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # UI and styling
+      ui:
+        patterns:
+          - "tailwindcss*"
+          - "@tailwindcss/*"
+          - "@headlessui/*"
+          - "@heroicons/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Ignore specific packages that require manual updates
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+
+  # ==========================================
+  # Backend Dependencies (pip/uv)
+  # ==========================================
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@nautobot/backend-team"
+    assignees:
+      - "@nautobot/backend-maintainers"
+    commit-message:
+      prefix: "pip"
+      prefix-development: "pip-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "python"
+    milestone: 2
+    rebase-strategy: "auto"
+    target-branch: "develop"
+    versioning-strategy: "increase"
+
+    # Group Python dependencies
+    groups:
+      # FastAPI ecosystem
+      fastapi:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "starlette*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Pydantic ecosystem
+      pydantic:
+        patterns:
+          - "pydantic*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Testing dependencies
+      testing:
+        patterns:
+          - "pytest*"
+          - "*test*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Code quality tools
+      code-quality:
+        patterns:
+          - "black"
+          - "isort"
+          - "mypy*"
+          - "flake8*"
+          - "ruff*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # HTTP and networking
+      networking:
+        patterns:
+          - "httpx*"
+          - "requests*"
+          - "aiohttp*"
+        update-types:
+          - "minor"
+          - "patch"
+
+    # Ignore major version updates for critical packages
+    ignore:
+      - dependency-name: "fastapi"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pydantic"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+
+  # ==========================================
+  # GitHub Actions
+  # ==========================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@nautobot/devops-team"
+    assignees:
+      - "@nautobot/devops-maintainers"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci"
+    milestone: 2
+    rebase-strategy: "auto"
+    target-branch: "develop"
+
+    # Group action updates
+    groups:
+      # Setup actions
+      setup-actions:
+        patterns:
+          - "actions/setup-*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Checkout and artifact actions
+      core-actions:
+        patterns:
+          - "actions/checkout"
+          - "actions/upload-artifact"
+          - "actions/download-artifact"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ==========================================
+  # Docker Dependencies
+  # ==========================================
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "monthly"
+      day: "first-monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@nautobot/devops-team"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+    target-branch: "develop"
+
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+      day: "first-monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@nautobot/devops-team"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+    target-branch: "develop"
+
+# ==========================================
+# Global Configuration
+# ==========================================
+
+# Auto-merge configuration (handled via GitHub settings)
+# Enable auto-merge for:
+# - Patch updates with passing tests
+# - Security updates
+# - Development dependencies with minor/patch updates
+
+# Branch protection rules should be configured to:
+# 1. Require status checks (CI pipeline)
+# 2. Require up-to-date branches
+# 3. Require review for major updates
+# 4. Allow auto-merge for patch/minor updates with passing tests
+
+# Notification settings:
+# - Slack integration for security updates
+# - Email notifications for failed dependency updates
+# - Weekly digest of pending updates

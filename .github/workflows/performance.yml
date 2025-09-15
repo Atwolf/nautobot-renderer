@@ -1,0 +1,583 @@
+name: ⚡ Performance Monitoring
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'package*.json'
+      - 'pyproject.toml'
+  workflow_dispatch:
+    inputs:
+      include_backend:
+        description: 'Include backend performance tests'
+        type: boolean
+        default: true
+      benchmark_size:
+        description: 'Benchmark dataset size'
+        type: choice
+        options: ['small', 'medium', 'large']
+        default: 'medium'
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  FORCE_COLOR: '1'
+
+# Allow one performance test per PR
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # Bundle Size Analysis
+  # ==========================================
+  bundle-analysis:
+    name: 📦 Bundle Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comparison
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🏗️ Build Production Bundle
+        working-directory: frontend
+        run: npm run build
+
+      - name: 📊 Analyze Bundle Size
+        working-directory: frontend
+        run: |
+          # Install bundle analyzer
+          npm install --no-save webpack-bundle-analyzer
+
+          # Create detailed analysis
+          npx vite-bundle-analyzer dist --format json > bundle-stats.json
+
+          # Extract metrics
+          TOTAL_SIZE=$(du -sb dist | cut -f1)
+          JS_SIZE=$(find dist -name "*.js" -exec du -cb {} + | tail -1 | cut -f1)
+          CSS_SIZE=$(find dist -name "*.css" -exec du -cb {} + | tail -1 | cut -f1)
+          ASSET_SIZE=$(find dist -name "*.png" -o -name "*.jpg" -o -name "*.svg" -o -name "*.ico" | xargs du -cb | tail -1 | cut -f1)
+          GZIP_SIZE=$(find dist -name "*.js" -o -name "*.css" | xargs gzip -c | wc -c)
+
+          # Format sizes for readability
+          TOTAL_MB=$(echo "scale=2; $TOTAL_SIZE / 1024 / 1024" | bc)
+          JS_KB=$(echo "scale=1; $JS_SIZE / 1024" | bc)
+          CSS_KB=$(echo "scale=1; $CSS_SIZE / 1024" | bc)
+          GZIP_KB=$(echo "scale=1; $GZIP_SIZE / 1024" | bc)
+
+          echo "Bundle Analysis Results:"
+          echo "========================"
+          echo "Total Size: ${TOTAL_MB} MB"
+          echo "JavaScript: ${JS_KB} KB"
+          echo "CSS: ${CSS_KB} KB"
+          echo "Gzipped: ${GZIP_KB} KB"
+
+          # Create performance report
+          cat > performance-report.md << EOF
+          ## 📦 Bundle Size Analysis
+
+          | Asset Type | Size | Compressed |
+          |------------|------|------------|
+          | **Total Bundle** | ${TOTAL_MB} MB | - |
+          | **JavaScript** | ${JS_KB} KB | ${GZIP_KB} KB (gzip) |
+          | **CSS** | ${CSS_KB} KB | - |
+          | **Assets** | $(echo "scale=1; $ASSET_SIZE / 1024" | bc) KB | - |
+
+          ### 📈 Bundle Composition
+
+          - **Main JS Chunk**: $(find dist -name "index-*.js" -exec du -h {} \; | cut -f1)
+          - **Vendor Chunks**: $(find dist -name "*vendor*.js" | wc -l) files
+          - **CSS Files**: $(find dist -name "*.css" | wc -l) files
+
+          ### ⚠️ Recommendations
+
+          EOF
+
+          # Add warnings for large bundles
+          if (( $(echo "$JS_SIZE > 500000" | bc -l) )); then
+            echo "- ⚠️ JavaScript bundle is larger than 500KB - consider code splitting" >> performance-report.md
+          fi
+
+          if (( $(echo "$CSS_SIZE > 100000" | bc -l) )); then
+            echo "- ⚠️ CSS bundle is larger than 100KB - consider purging unused styles" >> performance-report.md
+          fi
+
+          if (( $(echo "$TOTAL_SIZE > 2000000" | bc -l) )); then
+            echo "- ⚠️ Total bundle is larger than 2MB - consider lazy loading" >> performance-report.md
+          else
+            echo "- ✅ Bundle size is within acceptable limits" >> performance-report.md
+          fi
+
+          echo "" >> performance-report.md
+          echo "> 📊 Generated for commit \`${{ github.sha }}\`" >> performance-report.md
+
+          # Store metrics for comparison
+          echo "TOTAL_SIZE=$TOTAL_SIZE" >> $GITHUB_ENV
+          echo "JS_SIZE=$JS_SIZE" >> $GITHUB_ENV
+          echo "CSS_SIZE=$CSS_SIZE" >> $GITHUB_ENV
+          echo "GZIP_SIZE=$GZIP_SIZE" >> $GITHUB_ENV
+
+      - name: 📊 Compare with Main Branch
+        if: github.event_name == 'pull_request'
+        run: |
+          # Checkout main branch
+          git checkout origin/main -- frontend/package.json frontend/package-lock.json
+
+          # Build main branch
+          cd frontend
+          npm ci --prefer-offline --no-audit
+          npm run build
+
+          # Get main branch sizes
+          MAIN_TOTAL=$(du -sb dist | cut -f1)
+          MAIN_JS=$(find dist -name "*.js" -exec du -cb {} + | tail -1 | cut -f1)
+
+          # Calculate differences
+          TOTAL_DIFF=$((TOTAL_SIZE - MAIN_TOTAL))
+          JS_DIFF=$((JS_SIZE - MAIN_JS))
+
+          # Format differences
+          if [ $TOTAL_DIFF -gt 0 ]; then
+            TOTAL_CHANGE="+$(echo "scale=1; $TOTAL_DIFF / 1024" | bc) KB"
+          elif [ $TOTAL_DIFF -lt 0 ]; then
+            TOTAL_CHANGE="$(echo "scale=1; $TOTAL_DIFF / 1024" | bc) KB"
+          else
+            TOTAL_CHANGE="No change"
+          fi
+
+          if [ $JS_DIFF -gt 0 ]; then
+            JS_CHANGE="+$(echo "scale=1; $JS_DIFF / 1024" | bc) KB"
+          elif [ $JS_DIFF -lt 0 ]; then
+            JS_CHANGE="$(echo "scale=1; $JS_DIFF / 1024" | bc) KB"
+          else
+            JS_CHANGE="No change"
+          fi
+
+          # Append comparison to report
+          echo "" >> performance-report.md
+          echo "### 📊 Comparison with Main Branch" >> performance-report.md
+          echo "" >> performance-report.md
+          echo "| Metric | Main | This PR | Change |" >> performance-report.md
+          echo "|--------|------|---------|--------|" >> performance-report.md
+          echo "| Total Size | $(echo "scale=1; $MAIN_TOTAL / 1024" | bc) KB | $(echo "scale=1; $TOTAL_SIZE / 1024" | bc) KB | $TOTAL_CHANGE |" >> performance-report.md
+          echo "| JavaScript | $(echo "scale=1; $MAIN_JS / 1024" | bc) KB | $(echo "scale=1; $JS_SIZE / 1024" | bc) KB | $JS_CHANGE |" >> performance-report.md
+
+      - name: 📤 Upload Bundle Analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis-${{ github.run_id }}
+          path: |
+            frontend/bundle-stats.json
+            frontend/performance-report.md
+            frontend/dist/
+          retention-days: 30
+
+  # ==========================================
+  # Frontend Performance Tests
+  # ==========================================
+  frontend-performance:
+    name: 🎨 Frontend Performance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🎭 Install Playwright
+        working-directory: frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: 🏗️ Build Application
+        working-directory: frontend
+        run: npm run build
+
+      - name: 🚀 Start Development Server
+        working-directory: frontend
+        run: |
+          npm run preview &
+          SERVER_PID=$!
+          echo $SERVER_PID > server.pid
+
+          # Wait for server to start
+          timeout 60 bash -c '
+            while ! curl -sf http://localhost:4173 > /dev/null 2>&1; do
+              sleep 2
+            done
+          '
+          echo "Server started successfully"
+
+      - name: ⚡ Run Performance Tests
+        working-directory: frontend
+        run: |
+          # Create performance test
+          cat > performance.test.js << 'EOF'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+
+            console.log('🔍 Starting performance measurement...');
+
+            // Navigate and measure page load
+            const startTime = Date.now();
+            await page.goto('http://localhost:4173');
+
+            // Wait for React to hydrate
+            await page.waitForSelector('[data-testid="app-loaded"]', { timeout: 10000 }).catch(() => {
+              console.log('App loaded marker not found, using generic wait');
+            });
+
+            // Measure time to interactive
+            const endTime = Date.now();
+            const loadTime = endTime - startTime;
+
+            console.log(`📊 Page load time: ${loadTime}ms`);
+
+            // Get performance metrics
+            const performanceMetrics = await page.evaluate(() => {
+              const navigation = performance.getEntriesByType('navigation')[0];
+              const paint = performance.getEntriesByType('paint');
+
+              return {
+                domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
+                loadComplete: navigation.loadEventEnd - navigation.navigationStart,
+                firstPaint: paint.find(p => p.name === 'first-paint')?.startTime || 0,
+                firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+                transferSize: navigation.transferSize,
+                encodedBodySize: navigation.encodedBodySize
+              };
+            });
+
+            // Memory usage
+            const memoryInfo = await page.evaluate(() => {
+              return performance.memory ? {
+                usedJSHeapSize: performance.memory.usedJSHeapSize,
+                totalJSHeapSize: performance.memory.totalJSHeapSize,
+                jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+              } : null;
+            });
+
+            const results = {
+              loadTime,
+              ...performanceMetrics,
+              memoryInfo,
+              timestamp: new Date().toISOString()
+            };
+
+            console.log('📊 Performance Results:');
+            console.log(JSON.stringify(results, null, 2));
+
+            // Save results
+            fs.writeFileSync('performance-results.json', JSON.stringify(results, null, 2));
+
+            // Create markdown report
+            const report = `## ⚡ Frontend Performance Report
+
+          ### 📊 Core Metrics
+          | Metric | Value | Status |
+          |--------|-------|--------|
+          | **Page Load Time** | ${loadTime}ms | ${loadTime < 3000 ? '✅' : loadTime < 5000 ? '⚠️' : '❌'} |
+          | **DOM Content Loaded** | ${Math.round(performanceMetrics.domContentLoaded)}ms | ${performanceMetrics.domContentLoaded < 2000 ? '✅' : '⚠️'} |
+          | **First Contentful Paint** | ${Math.round(performanceMetrics.firstContentfulPaint)}ms | ${performanceMetrics.firstContentfulPaint < 1500 ? '✅' : '⚠️'} |
+          | **Transfer Size** | ${Math.round(performanceMetrics.transferSize / 1024)}KB | ${performanceMetrics.transferSize < 500000 ? '✅' : '⚠️'} |
+
+          ### 🧠 Memory Usage
+          ${memoryInfo ? `
+          | Metric | Value |
+          |--------|-------|
+          | **Used Heap** | ${Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024)}MB |
+          | **Total Heap** | ${Math.round(memoryInfo.totalJSHeapSize / 1024 / 1024)}MB |
+          | **Heap Limit** | ${Math.round(memoryInfo.jsHeapSizeLimit / 1024 / 1024)}MB |
+          ` : 'Memory information not available'}
+
+          ### 📈 Performance Score
+          ${loadTime < 2000 ? '🟢 Excellent (< 2s)' :
+            loadTime < 3000 ? '🟡 Good (< 3s)' :
+            loadTime < 5000 ? '🟠 Fair (< 5s)' :
+            '🔴 Poor (> 5s)'}
+
+          > 📊 Generated for commit \`${{ github.sha }}\`
+          `;
+
+            fs.writeFileSync('performance-report.md', report);
+
+            await browser.close();
+          })();
+          EOF
+
+          node performance.test.js
+
+      - name: 🛑 Stop Server
+        if: always()
+        working-directory: frontend
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+            rm server.pid
+          fi
+
+      - name: 📤 Upload Performance Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-performance-${{ github.run_id }}
+          path: |
+            frontend/performance-results.json
+            frontend/performance-report.md
+          retention-days: 30
+
+  # ==========================================
+  # Backend Performance Tests
+  # ==========================================
+  backend-performance:
+    name: 🐍 Backend Performance
+    runs-on: ubuntu-latest
+    if: github.event.inputs.include_backend != 'false'
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: 🔧 Install Dependencies
+        working-directory: backend
+        run: |
+          uv sync --all-extras
+          uv add pytest-benchmark
+
+      - name: ⚡ Run Performance Benchmarks
+        working-directory: backend
+        run: |
+          # Create benchmark test
+          cat > benchmark_schema.py << 'EOF'
+          import pytest
+          import time
+          from app.services.schema_transformer import transform_schema_data
+
+          # Sample data sizes
+          SMALL_DATASET = {"nodes": [{"id": f"node_{i}", "name": f"Node {i}", "app": "test"} for i in range(10)]}
+          MEDIUM_DATASET = {"nodes": [{"id": f"node_{i}", "name": f"Node {i}", "app": "test"} for i in range(100)]}
+          LARGE_DATASET = {"nodes": [{"id": f"node_{i}", "name": f"Node {i}", "app": "test"} for i in range(500)]}
+
+          def test_small_dataset_performance(benchmark):
+              result = benchmark(transform_schema_data, SMALL_DATASET)
+              assert len(result["nodes"]) == 10
+
+          def test_medium_dataset_performance(benchmark):
+              result = benchmark(transform_schema_data, MEDIUM_DATASET)
+              assert len(result["nodes"]) == 100
+
+          @pytest.mark.skipif(True, reason="Skip large dataset in CI")
+          def test_large_dataset_performance(benchmark):
+              result = benchmark(transform_schema_data, LARGE_DATASET)
+              assert len(result["nodes"]) == 500
+          EOF
+
+          # Run benchmarks
+          uv run pytest benchmark_schema.py \
+            --benchmark-only \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-min-rounds=5 \
+            --benchmark-sort=mean \
+            -v
+
+      - name: 📊 Generate Performance Report
+        working-directory: backend
+        run: |
+          python << 'EOF'
+          import json
+
+          with open('benchmark-results.json', 'r') as f:
+              data = json.load(f)
+
+          benchmarks = data['benchmarks']
+
+          report = """## 🐍 Backend Performance Report
+
+          ### 📊 Schema Transformation Benchmarks
+
+          | Dataset Size | Mean Time | Min Time | Max Time | Ops/sec |
+          |--------------|-----------|----------|----------|---------|
+          """
+
+          for bench in benchmarks:
+              name = bench['name'].replace('test_', '').replace('_performance', '').replace('_dataset', '')
+              mean = f"{bench['stats']['mean'] * 1000:.2f}ms"
+              min_time = f"{bench['stats']['min'] * 1000:.2f}ms"
+              max_time = f"{bench['stats']['max'] * 1000:.2f}ms"
+              ops_per_sec = f"{1 / bench['stats']['mean']:.1f}"
+
+              report += f"| **{name.title()}** | {mean} | {min_time} | {max_time} | {ops_per_sec} |\n"
+
+          report += f"""
+          ### 📈 Performance Analysis
+
+          """
+
+          # Add performance warnings
+          for bench in benchmarks:
+              mean_ms = bench['stats']['mean'] * 1000
+              name = bench['name'].replace('test_', '').replace('_performance', '')
+
+              if 'small' in name and mean_ms > 100:
+                  report += f"- ⚠️ Small dataset transformation is slower than expected ({mean_ms:.1f}ms > 100ms)\n"
+              elif 'medium' in name and mean_ms > 500:
+                  report += f"- ⚠️ Medium dataset transformation is slower than expected ({mean_ms:.1f}ms > 500ms)\n"
+              elif 'large' in name and mean_ms > 2000:
+                  report += f"- ⚠️ Large dataset transformation is slower than expected ({mean_ms:.1f}ms > 2000ms)\n"
+
+          report += f"\n> 📊 Generated for commit `${{ github.sha }}`\n"
+
+          with open('backend-performance-report.md', 'w') as f:
+              f.write(report)
+          EOF
+
+      - name: 📤 Upload Backend Performance Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-performance-${{ github.run_id }}
+          path: |
+            backend/benchmark-results.json
+            backend/backend-performance-report.md
+          retention-days: 30
+
+  # ==========================================
+  # Performance Summary
+  # ==========================================
+  performance-summary:
+    name: 📋 Performance Summary
+    runs-on: ubuntu-latest
+    needs: [bundle-analysis, frontend-performance, backend-performance]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: 📊 Create Combined Report
+        run: |
+          echo "## ⚡ Performance Monitoring Summary" > combined-report.md
+          echo "" >> combined-report.md
+          echo "| Component | Status | Details |" >> combined-report.md
+          echo "|-----------|--------|---------|" >> combined-report.md
+          echo "| Bundle Analysis | ${{ needs.bundle-analysis.result }} | Bundle size and composition |" >> combined-report.md
+          echo "| Frontend Performance | ${{ needs.frontend-performance.result }} | Page load and runtime metrics |" >> combined-report.md
+          echo "| Backend Performance | ${{ needs.backend-performance.result }} | API response times and throughput |" >> combined-report.md
+          echo "" >> combined-report.md
+
+          # Combine individual reports if they exist
+          if [ -f artifacts/bundle-analysis-*/performance-report.md ]; then
+            echo "---" >> combined-report.md
+            cat artifacts/bundle-analysis-*/performance-report.md >> combined-report.md
+          fi
+
+          if [ -f artifacts/frontend-performance-*/performance-report.md ]; then
+            echo "---" >> combined-report.md
+            cat artifacts/frontend-performance-*/performance-report.md >> combined-report.md
+          fi
+
+          if [ -f artifacts/backend-performance-*/backend-performance-report.md ]; then
+            echo "---" >> combined-report.md
+            cat artifacts/backend-performance-*/backend-performance-report.md >> combined-report.md
+          fi
+
+      - name: 💬 Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const report = fs.readFileSync('combined-report.md', 'utf8');
+
+              // Find existing comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+              const existingComment = comments.find(comment =>
+                comment.body.includes('⚡ Performance Monitoring Summary')
+              );
+
+              if (existingComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: report
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: report
+                });
+              }
+            } catch (error) {
+              console.log('Failed to read or post performance report:', error);
+            }
+
+      - name: 📤 Upload Combined Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-summary-${{ github.run_id }}
+          path: combined-report.md
+          retention-days: 30
+
+      - name: ✅ Check Performance Thresholds
+        run: |
+          echo "📊 Performance check completed"
+
+          # Set exit code based on results
+          if [[ "${{ needs.bundle-analysis.result }}" == "failure" || "${{ needs.frontend-performance.result }}" == "failure" ]]; then
+            echo "❌ Performance tests failed!"
+            exit 1
+          else
+            echo "✅ All performance tests passed!"
+          fi

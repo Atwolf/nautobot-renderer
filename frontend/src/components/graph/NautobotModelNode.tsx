@@ -73,36 +73,46 @@ const useNodeInteraction = (selected: boolean) => {
 const generateHandles = (data: NautobotNodeData): HandleConfig[] => {
   const handles: HandleConfig[] = [];
 
-  // Outgoing relationships (sources)
-  data.relationships.outgoing.forEach((rel, index) => {
-    const position = rel.type === 'many_to_many'
-      ? (index % 2 === 0 ? 'top' : 'bottom')
-      : 'right';
+  // Since API nodes don't have relationship data embedded,
+  // add default handles that edges can connect to
 
-    handles.push({
-      id: `${rel.id}-source`,
-      type: 'source',
-      position: position as any,
-      relationshipType: rel.type,
-      fieldName: rel.fieldName,
-      relatedModel: rel.toModel
-    });
+  // Add default source handles (right side)
+  handles.push({
+    id: `${data.id || data.name}-source-right`,
+    type: 'source',
+    position: 'right',
+    relationshipType: 'default',
+    fieldName: 'default',
+    relatedModel: ''
   });
 
-  // Incoming relationships (targets)
-  data.relationships.incoming.forEach((rel, index) => {
-    const position = rel.type === 'many_to_many'
-      ? (index % 2 === 0 ? 'top' : 'bottom')
-      : 'left';
+  // Add default target handles (left side)
+  handles.push({
+    id: `${data.id || data.name}-target-left`,
+    type: 'target',
+    position: 'left',
+    relationshipType: 'default',
+    fieldName: 'default',
+    relatedModel: ''
+  });
 
-    handles.push({
-      id: `${rel.id}-target`,
-      type: 'target',
-      position: position as any,
-      relationshipType: rel.type,
-      fieldName: rel.relatedName || rel.fieldName,
-      relatedModel: rel.fromModel
-    });
+  // Add additional handles for more connection flexibility
+  handles.push({
+    id: `${data.id || data.name}-source-top`,
+    type: 'source',
+    position: 'top',
+    relationshipType: 'default',
+    fieldName: 'default',
+    relatedModel: ''
+  });
+
+  handles.push({
+    id: `${data.id || data.name}-target-bottom`,
+    type: 'target',
+    position: 'bottom',
+    relationshipType: 'default',
+    fieldName: 'default',
+    relatedModel: ''
   });
 
   return handles;
@@ -258,17 +268,7 @@ export const NautobotModelNode: React.FC<NodeProps<NautobotNodeData>> = React.me
   data,
   selected = false
 }) => {
-  // Debug logging
-  useEffect(() => {
-    console.log('NautobotModelNode rendering:', {
-      id: data.id,
-      name: data.name,
-      app: data.app,
-      selected,
-      fieldsCount: data.fields?.length || 0,
-      relationshipsCount: (data.relationships?.outgoing?.length || 0) + (data.relationships?.incoming?.length || 0)
-    });
-  }, [data, selected]);
+  // Debug logging removed to prevent console spam
 
   // Early return for missing data
   if (!data) {
@@ -303,7 +303,6 @@ export const NautobotModelNode: React.FC<NodeProps<NautobotNodeData>> = React.me
   const appColors = useMemo(() => {
     try {
       const colors = getAppColors(data.app);
-      console.log('App colors for', data.app, ':', colors);
       return colors;
     } catch (error) {
       console.error('Error getting app colors:', error);
@@ -330,7 +329,6 @@ export const NautobotModelNode: React.FC<NodeProps<NautobotNodeData>> = React.me
         return [];
       }
       const generatedHandles = generateHandles(data);
-      console.log('Generated handles for', data.name, ':', generatedHandles);
       return generatedHandles;
     } catch (error) {
       console.error('Error generating handles:', error);
@@ -466,6 +464,9 @@ export const NautobotModelNode: React.FC<NodeProps<NautobotNodeData>> = React.me
             fields={data.fields || []}
             expanded={expanded}
             maxVisible={5}
+            modelName={data.name}
+            usePrimaryFiltering
+            onToggleExpanded={() => setExpanded(prev => !prev)}
           />
         </div>
 

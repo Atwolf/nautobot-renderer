@@ -1,0 +1,675 @@
+[
+  {
+    "id": "dfeca27b-6873-495c-a873-a880600d51ba",
+    "name": "CircuitTerminationType",
+    "app_label": "circuits",
+    "table_name": "circuits_circuit_termination_type",
+    "fields": [
+      {
+        "name": "id",
+        "field_type": "UUIDField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "created",
+        "field_type": "DateTimeField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "last_updated",
+        "field_type": "DateTimeField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cable",
+        "field_type": "CableType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "_cable_peer_type",
+        "field_type": "ContentTypeType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "_cable_peer_id",
+        "field_type": "UUIDField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "_path",
+        "field_type": "CablePathType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "circuit",
+        "field_type": "CircuitType",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "term_side",
+        "field_type": "CircuitsCircuitTerminationTermSideChoices",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "location",
+        "field_type": "LocationType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "provider_network",
+        "field_type": "ProviderNetworkType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloud_network",
+        "field_type": "CloudNetworkType",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "port_speed",
+        "field_type": "IntegerField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "upstream_speed",
+        "field_type": "IntegerField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": "Upstream speed, if different from port speed",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "xconnect_id",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "pp_info",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "description",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      }
+    ],
+    "is_abstract": false,
+    "description": "Graphql Type Object for CircuitTermination model.",
+    "meta_options": {}
+  },
+  {
+    "id": "9302962b-ded9-470e-95b8-425659bf8411",
+    "name": "TagType",
+    "app_label": "extras",
+    "table_name": "extras_tag_type",
+    "fields": [
+      {
+        "name": "id",
+        "field_type": "UUIDField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "created",
+        "field_type": "DateTimeField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "last_updated",
+        "field_type": "DateTimeField",
+        "is_nullable": true,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "name",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "color",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "description",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "providernetwork",
+        "field_type": "ProviderNetworkType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3585d20>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "circuit",
+        "field_type": "CircuitType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff35b0310>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "circuittermination",
+        "field_type": "CircuitTerminationType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3a379d0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloudaccount",
+        "field_type": "CloudAccountType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff35c3880>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloudresourcetype",
+        "field_type": "CloudResourceTypeType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3852170>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloudnetwork",
+        "field_type": "CloudNetworkType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff35cef50>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloudservice",
+        "field_type": "CloudServiceType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff35d7ee0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "consoleport",
+        "field_type": "ConsolePortType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff393be50>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "consoleserverport",
+        "field_type": "ConsoleServerPortType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38e5450>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "powerport",
+        "field_type": "PowerPortType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff375cfa0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "poweroutlet",
+        "field_type": "PowerOutletType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff37674c0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "interface",
+        "field_type": "InterfaceType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3788a30>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "interfaceredundancygroup",
+        "field_type": "InterfaceRedundancyGroupType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3680c40>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "frontport",
+        "field_type": "FrontPortType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3787340>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "rearport",
+        "field_type": "RearPortType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff37e54b0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "devicebay",
+        "field_type": "DeviceBayType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff37f0dc0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "inventoryitem",
+        "field_type": "InventoryItemType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff37fe050>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "modulebay",
+        "field_type": "ModuleBayType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38259f0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "devicefamily",
+        "field_type": "DeviceFamilyType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff35ed3c0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "controller",
+        "field_type": "ControllerType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3834070>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "controllermanageddevicegroup",
+        "field_type": "ControllerManagedDeviceGroupType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3634730>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "modulefamily",
+        "field_type": "ModuleFamilyType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3635570>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "virtualdevicecontext",
+        "field_type": "VirtualDeviceContextType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff383a410>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "location",
+        "field_type": "LocationType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff39b7700>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "rackreservation",
+        "field_type": "RackReservationType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38d2800>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "namespace",
+        "field_type": "NamespaceType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3727880>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "vlangroup",
+        "field_type": "VLANGroupType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3740e50>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "dynamicgroup",
+        "field_type": "DynamicGroupType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff386cc70>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "jobqueue",
+        "field_type": "JobQueueType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff356ffd0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "metadatatype",
+        "field_type": "MetadataTypeType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38cf5b0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "tenant",
+        "field_type": "TenantType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff34b1780>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "vminterface",
+        "field_type": "VMInterfaceType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff34d1c00>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "wirelessnetwork",
+        "field_type": "WirelessNetworkType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3491a50>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      }
+    ],
+    "is_abstract": false,
+    "description": "Graphql Type Object for Tag model.",
+    "meta_options": {}
+  },
+  {
+    "id": "ba7d7e59-a3a1-49ab-9443-c8fc942b3b07",
+    "name": "ContentTypeType",
+    "app_label": "core",
+    "table_name": "core_content_type_type",
+    "fields": [
+      {
+        "name": "id",
+        "field_type": "AutoField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "app_label",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "model",
+        "field_type": "CharField",
+        "is_nullable": false,
+        "is_list": false,
+        "description": null,
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "dynamic_groups",
+        "field_type": "DynamicGroupType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff386cc70>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "metadata_types",
+        "field_type": "MetadataTypeType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38cf5b0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "config_context_schemas",
+        "field_type": "ConfigContextSchemaType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38e63e0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "location_types",
+        "field_type": "LocationTypeType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff38914b0>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      },
+      {
+        "name": "cloud_resource_types",
+        "field_type": "CloudResourceTypeType",
+        "is_nullable": true,
+        "is_list": true,
+        "description": "<graphene.types.argument.Argument object at 0x7ffff3852170>",
+        "default_value": null,
+        "max_length": null,
+        "choices": null
+      }
+    ],
+    "is_abstract": false,
+    "description": "Graphene-Django object type for ContentType records.\n\nNeeded because ContentType is a built-in model, not one that we own and can auto-generate types for.",
+    "meta_options": {}
+  }
+]

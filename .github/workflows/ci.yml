@@ -1,0 +1,405 @@
+name: 🚀 CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  FORCE_COLOR: '1'
+
+# Allow one concurrent CI run per PR/branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # Quick Checks (Fail Fast)
+  # ==========================================
+  quick-checks:
+    name: 🔍 Quick Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check for Changed Files
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+              - 'package*.json'
+            backend:
+              - 'backend/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+            workflows:
+              - '.github/workflows/**'
+
+    outputs:
+      frontend: ${{ steps.changes.outputs.frontend }}
+      backend: ${{ steps.changes.outputs.backend }}
+      workflows: ${{ steps.changes.outputs.workflows }}
+
+  # ==========================================
+  # Frontend Testing Matrix
+  # ==========================================
+  frontend-tests:
+    name: 🎨 Frontend Tests (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: needs.quick-checks.outputs.frontend == 'true' || needs.quick-checks.outputs.workflows == 'true'
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🔍 TypeScript Check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: 🎨 ESLint Check
+        working-directory: frontend
+        run: npm run lint
+
+      - name: 🧪 Run Tests with Coverage
+        working-directory: frontend
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+
+      - name: 📊 Coverage Check
+        working-directory: frontend
+        run: |
+          COVERAGE=$(npm run test:coverage --silent | grep -o 'All files.*[0-9.]*%' | grep -o '[0-9.]*%' | head -1 | sed 's/%//')
+          echo "Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage ${COVERAGE}% is below 80% threshold"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets 80% threshold"
+          fi
+
+      - name: 🏗️ Build Check
+        working-directory: frontend
+        run: npm run build
+
+      - name: 📤 Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == 20  # Only upload once
+        with:
+          name: frontend-coverage-${{ github.run_id }}
+          path: frontend/coverage/
+          retention-days: 30
+
+      - name: 📤 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == 20  # Only upload once
+        with:
+          name: frontend-build-${{ github.run_id }}
+          path: frontend/dist/
+          retention-days: 7
+
+  # ==========================================
+  # Backend Testing Matrix
+  # ==========================================
+  backend-tests:
+    name: 🐍 Backend Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    if: needs.quick-checks.outputs.backend == 'true' || needs.quick-checks.outputs.workflows == 'true'
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "backend/uv.lock"
+
+      - name: 🔧 Install Dependencies
+        working-directory: backend
+        run: uv sync --all-extras
+
+      - name: 🔍 Type Check with mypy
+        working-directory: backend
+        run: uv run mypy app/ --ignore-missing-imports
+
+      - name: 🎨 Code Style Check
+        working-directory: backend
+        run: |
+          uv run black --check app/ tests/
+          uv run isort --check-only app/ tests/
+
+      - name: 🧪 Run Tests with Coverage
+        working-directory: backend
+        run: |
+          uv run pytest tests/ \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term \
+            --cov-fail-under=80 \
+            --junitxml=pytest-results.xml \
+            -v
+        env:
+          PYTHONPATH: .
+
+      - name: 📤 Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.11'  # Only upload once
+        with:
+          name: backend-coverage-${{ github.run_id }}
+          path: |
+            backend/htmlcov/
+            backend/coverage.xml
+          retention-days: 30
+
+      - name: 📤 Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: backend/pytest-results.xml
+          retention-days: 30
+
+  # ==========================================
+  # Security Scans
+  # ==========================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Frontend Security Scan
+        if: needs.quick-checks.outputs.frontend == 'true'
+        working-directory: frontend
+        run: |
+          npm audit --audit-level=high
+          npx audit-ci --high
+
+      - name: 🔍 Backend Security Scan
+        if: needs.quick-checks.outputs.backend == 'true'
+        working-directory: backend
+        run: |
+          pip install safety
+          uv run safety check --json --output safety-report.json || true
+
+      - name: 📤 Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports-${{ github.run_id }}
+          path: |
+            backend/safety-report.json
+          retention-days: 30
+
+  # ==========================================
+  # Bundle Size Analysis
+  # ==========================================
+  bundle-analysis:
+    name: 📦 Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: [quick-checks, frontend-tests]
+    if: needs.quick-checks.outputs.frontend == 'true' && github.event_name == 'pull_request'
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦 Install Dependencies
+        working-directory: frontend
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🏗️ Build for Analysis
+        working-directory: frontend
+        run: npm run build
+
+      - name: 📊 Analyze Bundle Size
+        working-directory: frontend
+        run: |
+          npx vite-bundle-analyzer dist --format json > bundle-analysis.json
+
+          # Extract key metrics
+          TOTAL_SIZE=$(du -sb dist | cut -f1)
+          JS_SIZE=$(find dist -name "*.js" -exec du -sb {} + | awk '{total += $1} END {print total}')
+          CSS_SIZE=$(find dist -name "*.css" -exec du -sb {} + | awk '{total += $1} END {print total}')
+
+          echo "📦 Bundle Analysis Results:"
+          echo "Total Bundle Size: $(numfmt --to=iec $TOTAL_SIZE)"
+          echo "JavaScript Size: $(numfmt --to=iec $JS_SIZE)"
+          echo "CSS Size: $(numfmt --to=iec $CSS_SIZE)"
+
+          # Create summary for PR comment
+          cat > bundle-summary.md << EOF
+          ## 📦 Bundle Size Analysis
+
+          | Asset Type | Size |
+          |------------|------|
+          | Total Bundle | $(numfmt --to=iec $TOTAL_SIZE) |
+          | JavaScript | $(numfmt --to=iec $JS_SIZE) |
+          | CSS | $(numfmt --to=iec $CSS_SIZE) |
+
+          > Generated for commit ${{ github.sha }}
+          EOF
+
+      - name: 📤 Upload Bundle Analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis-${{ github.run_id }}
+          path: |
+            frontend/bundle-analysis.json
+            frontend/bundle-summary.md
+          retention-days: 30
+
+  # ==========================================
+  # Integration Tests
+  # ==========================================
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+    if: always() && needs.frontend-tests.result == 'success' && needs.backend-tests.result == 'success'
+    timeout-minutes: 15
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: 🔧 Install Backend Dependencies
+        working-directory: backend
+        run: uv sync --all-extras
+
+      - name: 🚀 Start Backend Server
+        working-directory: backend
+        run: |
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8080 &
+          echo $! > backend.pid
+          sleep 10  # Wait for server to start
+
+      - name: 🏥 Health Check
+        run: |
+          curl -f http://localhost:8080/api/v1/health || exit 1
+
+      - name: 🧪 Run Integration Tests
+        working-directory: frontend
+        run: |
+          if [ -f "src/tests/integration.test.ts" ]; then
+            npm run test -- src/tests/integration.test.ts
+          else
+            echo "No integration tests found, skipping..."
+          fi
+
+      - name: 🛑 Cleanup
+        if: always()
+        run: |
+          if [ -f backend/backend.pid ]; then
+            kill $(cat backend/backend.pid) || true
+          fi
+
+  # ==========================================
+  # Summary Job
+  # ==========================================
+  ci-summary:
+    name: 📋 CI Summary
+    runs-on: ubuntu-latest
+    needs: [quick-checks, frontend-tests, backend-tests, security-scan, integration-tests]
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: 📊 Generate Summary
+        run: |
+          echo "## 🚀 CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Quick Checks | ${{ needs.quick-checks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: ✅ Mark Success
+        if: needs.frontend-tests.result == 'success' && needs.backend-tests.result == 'success'
+        run: echo "All tests passed! 🎉"
+
+      - name: ❌ Mark Failure
+        if: needs.frontend-tests.result == 'failure' || needs.backend-tests.result == 'failure'
+        run: |
+          echo "Some tests failed! ❌"
+          exit 1

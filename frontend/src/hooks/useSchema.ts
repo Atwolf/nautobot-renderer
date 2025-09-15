@@ -45,7 +45,66 @@ export function useDiscoverSchema(
 ): UseQueryResult<SchemaResponse, SchemaServiceError> {
   return useQuery({
     queryKey: schemaQueryKeys.discover(),
-    queryFn: () => schemaService.discoverSchema(),
+    queryFn: async () => {
+      console.log('=== API REQUEST INITIATED ===');
+      console.log('Calling schemaService.discoverSchema()...');
+
+      const result = await schemaService.discoverSchema();
+
+      console.log('=== RAW API RESPONSE RECEIVED ===');
+      console.log('Response type:', typeof result);
+      console.log('Response keys:', result ? Object.keys(result) : 'null/undefined');
+
+      if (result) {
+        // Log the structure of the response
+        console.log('Response structure analysis:', {
+          hasNodes: 'nodes' in result,
+          nodesType: result.nodes ? typeof result.nodes : 'undefined',
+          nodesIsArray: result.nodes ? Array.isArray(result.nodes) : false,
+          nodesLength: result.nodes?.length || 0,
+          hasSchemaGraph: 'schema_graph' in result,
+          schemaGraphType: (result as any).schema_graph ? typeof (result as any).schema_graph : 'undefined',
+          hasRelationships: 'relationships' in result,
+          relationshipsLength: (result as any).relationships?.length || 0
+        });
+
+        // Log sample nodes if available
+        if (result.nodes && Array.isArray(result.nodes) && result.nodes.length > 0) {
+          console.log('=== SAMPLE API NODES ===');
+          result.nodes.slice(0, 3).forEach((node: any, index: number) => {
+            console.log(`Sample node ${index}:`, {
+              id: node.id,
+              name: node.name,
+              app: node.app,
+              app_label: node.app_label,
+              keys: Object.keys(node)
+            });
+          });
+        }
+
+        // Check if it's wrapped in schema_graph
+        if ((result as any).schema_graph) {
+          const schemaGraph = (result as any).schema_graph;
+          console.log('=== SCHEMA_GRAPH WRAPPER DETECTED ===');
+          console.log('Schema graph keys:', Object.keys(schemaGraph));
+
+          if (schemaGraph.nodes && Array.isArray(schemaGraph.nodes)) {
+            console.log(`Schema graph contains ${schemaGraph.nodes.length} nodes`);
+            schemaGraph.nodes.slice(0, 3).forEach((node: any, index: number) => {
+              console.log(`Schema graph node ${index}:`, {
+                id: node.id,
+                name: node.name,
+                app: node.app,
+                app_label: node.app_label,
+                keys: Object.keys(node)
+              });
+            });
+          }
+        }
+      }
+
+      return result;
+    },
     ...baseQueryConfig,
     ...options,
   });

@@ -46,8 +46,8 @@ export class AutoLayout {
     const config: LayoutOptions = {
       algorithm: 'dagre',
       direction: 'TB',
-      nodeSpacing: 80,
-      rankSpacing: 120,
+      nodeSpacing: 60,  // Reduced from 80px (25% reduction)
+      rankSpacing: 90,  // Reduced from 120px (25% reduction)
       animate: true,
       alignNodes: true,
       compactMode: false,
