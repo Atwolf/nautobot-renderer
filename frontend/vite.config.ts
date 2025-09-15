@@ -5,6 +5,8 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Set base path for GitHub Pages deployment
+  base: process.env.NODE_ENV === 'production' ? '/nautobot-renderer/' : '/',
   server: {
     port: 3000,
     host: true,
@@ -41,5 +43,7 @@ export default defineConfig({
         },
       },
     },
+    // Skip TypeScript checking in CI/production builds for faster builds
+    skipLibCheck: true,
   },
 })
